@@ -1,4 +1,4 @@
-# DodgeRunner
+# EndlessRunner
 # 🏃 HTML5 Endless Runner
 
 A lightweight, browser-based survival game built entirely with JavaScript and the HTML5 Canvas API.
