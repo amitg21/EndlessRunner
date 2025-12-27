@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amit Gupta | Portfolio</title>
+    <style>
+        /* CSS Styles */
+        :root {
+            --primary: #4ade80;
+            --bg-dark: #111827;
+            --bg-card: #1f2937;
+            --text-light: #f3f4f6;
+            --text-gray: #9ca3af;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--bg-card);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: var(--primary);
+        }
+
+        header p {
+            color: var(--text-gray);
+            font-size: 1.2rem;
+        }
+
+        /* Container */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Portfolio Section */
+        .section-title {
+            border-left: 5px solid var(--primary);
+            padding-left: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .project-card {
+            background-color: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .project-card h3 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+
+        /* Game Section */
+        #game-area {
+            background-color: var(--bg-card);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        canvas {
+            background-color: #000;
+            border: 2px solid var(--text-gray);
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+
+        .game-controls {
+            margin-top: 1rem;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: var(--bg-dark);
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-gray);
+            margin-top: 2rem;
+            border-top: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Amit Gupta</h1>
+        <p>Game Developer & Simulation Specialist</p>
+    </header>
+
+    <div class="container">
+        
+        <section id="portfolio">
+            <h2 class="section-title">My Projects</h2>
+            <div class="project-grid">
+                <div class="project-card">
+                    <h3>Rubik's Cube Simulator</h3>
+                    <p>An interactive 3D simulation of a Rubik's cube with realistic physics and solving algorithms.</p>
+                </div>
+
+                <div class="project-card">
+                    <h3>VR Parkour Game</h3>
+                    <p>A high-intensity Virtual Reality experience focusing on locomotion mechanics and urban obstacle traversal.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="game-demo">
+            <h2 class="section-title">Play My Mini-Game</h2>
+            <p>I built this simple HTML5 canvas runner to demonstrate logic. <br><strong>How to play:</strong> Press SPACE or Click the box to Jump.</p>
+            
+            <div id="game-area">
+                <canvas id="gameCanvas" width="600" height="200"></canvas>
+                <div class="game-controls">
+                    <p>Score: <span id="score">0</span></p>
+                    <button onclick="startGame()">Start Game</button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Amit Gupta. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // GAME LOGIC
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let animationId;
+        let isGameOver = false;
+        let score = 0;
+
+        // Game Entities
+        let player = {
+            x: 50,
+            y: 150,
+            width: 30,
+            height: 30,
+            color: '#4ade80',
+            dy: 0,
+            jumpStrength: 10,
+            grounded: true
+        };
+
+        let obstacle = {
+            x: 600,
+            y: 160, // Ground level - height
+            width: 20,
+            height: 40,
+            color: '#ef4444',
+            speed: 5
+        };
+
+        const gravity = 0.6; 
+        const groundHeight = 180;
+
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        function drawObstacle() {
+            ctx.fillStyle = obstacle.color;
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        }
+
+        function drawGround() {
+            ctx.beginPath();
+            ctx.moveTo(0, groundHeight);
+            ctx.lineTo(canvas.width, groundHeight);
+            ctx.strokeStyle = '#fff';
+            ctx.stroke();
+        }
+
+        function update() {
+            if (isGameOver) return;
+
+            // Clear Screen
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Player Physics
+            if (!player.grounded) {
+                player.dy += gravity;
+                player.y += player.dy;
+            }
+
+            // Ground Collision
+            if (player.y + player.height > groundHeight) {
+                player.y = groundHeight - player.height;
+                player.dy = 0;
+                player.grounded = true;
+            }
+
+            // Obstacle Movement
+            obstacle.x -= obstacle.speed;
+            if (obstacle.x + obstacle.width < 0) {
+                obstacle.x = canvas.width; // Reset position
+                score++;
+                obstacle.speed += 0.2; // Make it harder
+                document.getElementById('score').innerText = score;
+            }
+
+            // Collision Detection
+            if (
+                player.x < obstacle.x + obstacle.width &&
+                player.x + player.width > obstacle.x &&
+                player.y < obstacle.y + obstacle.height &&
+                player.y + player.height > obstacle.y
+            ) {
+                gameOver();
+            }
+
+            drawGround();
+            drawPlayer();
+            drawObstacle();
+
+            animationId = requestAnimationFrame(update);
+        }
+
+        function jump() {
+            if (player.grounded && !isGameOver) {
+                player.dy = -player.jumpStrength;
+                player.grounded = false;
+            }
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            cancelAnimationFrame(animationId);
+            ctx.fillStyle = "white";
+            ctx.font = "30px Arial";
+            ctx.fillText("Game Over!", 220, 100);
+            ctx.font = "15px Arial";
+            ctx.fillText("Press Start to try again", 225, 130);
+        }
+
+        function startGame() {
+            // Reset variables
+            isGameOver = false;
+            score = 0;
+            document.getElementById('score').innerText = score;
+            obstacle.x = canvas.width;
+            obstacle.speed = 5;
+            player.y = 150;
+            
+            cancelAnimationFrame(animationId); // Stop any existing loop
+            update(); // Start loop
+        }
+
+        // Controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault(); // Stop scrolling
+                jump();
+            }
+        });
+
+        canvas.addEventListener('click', () => {
+            jump();
+        });
+
+        // Initial render
+        drawGround();
+        ctx.fillStyle = "white";
+        ctx.fillText("Press Start Game", 250, 100);
+
+    </script>
+</body>
+</html>
