@@ -1,5 +1,6 @@
 # EndlessRunner
 # 🏃 HTML5 Endless Runner
+**[Click here to view the website](https://amitg21.github.io/EndlessRunner/)**
 
 A lightweight, browser-based survival game built entirely with JavaScript and the HTML5 Canvas API.
 
